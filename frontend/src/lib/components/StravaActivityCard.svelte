@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formatDateInTimezone } from '$lib/dateUtils';
 	import { dateFormatFromUser } from '$lib/dateFormat';
+	import { formatActivityMetric } from '$lib/activityMetrics';
 	import type { StravaActivity } from '$lib/types';
 	import { createEventDispatcher } from 'svelte';
 	import { t } from 'svelte-i18n';
@@ -66,9 +67,12 @@
 	}
 
 	function convertElevation(
-		meters: number,
+		meters: number | null | undefined,
 		system: 'metric' | 'imperial'
-	): { value: number; unit: string } {
+	): { value: number | null; unit: string } {
+		if (meters == null) {
+			return { value: null, unit: system === 'imperial' ? 'ft' : 'm' };
+		}
 		if (system === 'imperial') {
 			return { value: meters * 3.28084, unit: 'ft' };
 		}
@@ -219,7 +223,7 @@
 		<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
 			<div class="stat bg-base-100 rounded-lg p-3">
 				<div class="stat-title text-xs">{$t('adventures.distance')}</div>
-				<div class="stat-value text-lg">{distance.value.toFixed(2)}</div>
+				<div class="stat-value text-lg">{formatActivityMetric(distance.value, 2)}</div>
 				<div class="stat-desc">{distance.unit}</div>
 			</div>
 			<div class="stat bg-base-100 rounded-lg p-3">
@@ -229,12 +233,12 @@
 			</div>
 			<div class="stat bg-base-100 rounded-lg p-3">
 				<div class="stat-title text-xs">{$t('adventures.avg_speed')}</div>
-				<div class="stat-value text-lg">{speed.value.toFixed(1)}</div>
+				<div class="stat-value text-lg">{formatActivityMetric(speed.value, 1)}</div>
 				<div class="stat-desc">{speed.unit}</div>
 			</div>
 			<div class="stat bg-base-100 rounded-lg p-3">
 				<div class="stat-title text-xs">{$t('adventures.elevation')}</div>
-				<div class="stat-value text-lg">{elevation.value.toFixed(0)}</div>
+				<div class="stat-value text-lg">{formatActivityMetric(elevation.value, 0)}</div>
 				<div class="stat-desc">{elevation.unit} {$t('adventures.gain')}</div>
 			</div>
 		</div>
@@ -279,7 +283,7 @@
 				</div>
 				<div class="text-sm">
 					<span class="font-medium">{$t('adventures.max_speed')}:</span>
-					{maxSpeed.value.toFixed(1)}
+					{formatActivityMetric(maxSpeed.value, 1)}
 					{maxSpeed.unit}
 				</div>
 			</div>
